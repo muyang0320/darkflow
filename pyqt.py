@@ -5,15 +5,14 @@
 import cv2
 import numpy as np
 import sys
-from PyQt5 import QtCore
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 
 import time
 
 from darkflow.net.build import TFNet
 
+# 生成框的颜色
 names = [
     'person',
     'bicycle',
@@ -96,11 +95,10 @@ names = [
     'hair drier',
     'toothbrush'
 ]
-
 RED = 255
 GREEN = 255
 BLUE = 255
-
+colors = {}
 i = 0
 red = RED
 for r in range(4):
@@ -108,7 +106,7 @@ for r in range(4):
     for g in range(4):
         blue = BLUE
         for b in range(5):
-            colors.append({names[i]: (red, green, blue)})
+            colors[names[i]] = (red, green, blue)
             blue = blue / 2
             i += 1
         green = green / 2
@@ -147,19 +145,24 @@ class ShowVideo(QtCore.QObject):
             cv2.putText(image, mess, (left, top - 12),
                         0, 1e-3 * height, color, thick // 3)
 
-    def _formatJSON(self, json_list):
+    def _formatJSON(self, json_list, fps):
         info_str = ''
         for json in json_list:
             label = json['label']
             confidence = json['confidence'] * 100
 
             info_str += 'Label %s, confidence: %.2f%%, depth: 1.2m\n' % (label, confidence)
+        info_str = 'fps: %.2f\n' % fps + info_str
         return info_str
 
     @QtCore.pyqtSlot()
     def startVideo(self):
 
         run_video = True
+
+        elaped = 0
+        fps = 0
+        start_time = time.time()
         while run_video:
             # 用opencv获得一帧
             ret, image = self.camera.read()
@@ -182,9 +185,16 @@ class ShowVideo(QtCore.QObject):
             # 而槽则为后面connect的setImage
             # 换句话说 QImage实例作为事件对象 VideoSignal发出信号交给setImage来处理
             # 而我如果没估计错的话 update会调用paintEvent从而重新drawImage 完成图像更新
+            if elaped < 5:
+                elaped += 1
+            else:
+                end_time = time.time()
+                interval_time = end_time - start_time
+                fps = elaped / interval_time
+                elaped = 0
+                start_time = time.time()
             self.VideoSignal.emit(qt_image)  # 发图
-
-            self.InfoSignal.emit(self._formatJSON(info_json))  # 这里解析json并发送吧
+            self.InfoSignal.emit(self._formatJSON(info_json, fps))  # 这里解析json并发送吧
 
 
 class ImageViewer(QtWidgets.QWidget):
@@ -266,4 +276,5 @@ if __name__ == '__main__':
     main_window = QtWidgets.QMainWindow()
     main_window.setCentralWidget(full_hwidget)
     main_window.show()
+
     sys.exit(app.exec_())
