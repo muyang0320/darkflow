@@ -14,6 +14,106 @@ import time
 
 from darkflow.net.build import TFNet
 
+names = [
+    'person',
+    'bicycle',
+    'car',
+    'motorbike',
+    'aeroplane',
+    'bus',
+    'train',
+    'truck',
+    'boat',
+    'traffic light',
+    'fire hydrant',
+    'stop sign',
+    'parking meter',
+    'bench',
+    'bird',
+    'cat',
+    'dog',
+    'horse',
+    'sheep',
+    'cow',
+    'elephant',
+    'bear',
+    'zebra',
+    'giraffe',
+    'backpack',
+    'umbrella',
+    'handbag',
+    'tie',
+    'suitcase',
+    'frisbee',
+    'skis',
+    'snowboard',
+    'sports ball',
+    'kite',
+    'baseball bat',
+    'baseball glove',
+    'skateboard',
+    'surfboard',
+    'tennis racket',
+    'bottle',
+    'wine glass',
+    'cup',
+    'fork',
+    'knife',
+    'spoon',
+    'bowl',
+    'banana',
+    'apple',
+    'sandwich',
+    'orange',
+    'broccoli',
+    'carrot',
+    'hot dog',
+    'pizza',
+    'donut',
+    'cake',
+    'chair',
+    'sofa',
+    'pottedplant',
+    'bed',
+    'diningtable',
+    'toilet',
+    'tvmonitor',
+    'laptop',
+    'mouse',
+    'remote',
+    'keyboard',
+    'cell phone',
+    'microwave',
+    'oven',
+    'toaster',
+    'sink',
+    'refrigerator',
+    'book',
+    'clock',
+    'vase',
+    'scissors',
+    'teddy bear',
+    'hair drier',
+    'toothbrush'
+]
+
+RED = 255
+GREEN = 255
+BLUE = 255
+
+i = 0
+red = RED
+for r in range(4):
+    green = GREEN
+    for g in range(4):
+        blue = BLUE
+        for b in range(5):
+            colors.append({names[i]: (red, green, blue)})
+            blue = blue / 2
+            i += 1
+        green = green / 2
+    red = red / 2
+
 
 class ShowVideo(QtCore.QObject):
     # initiating the built in camera
@@ -21,7 +121,7 @@ class ShowVideo(QtCore.QObject):
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
     # 初始化网络
-    options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.2}
+    options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.3}
     tfnet = TFNet(options)
     # 好像是所谓的信号槽？ VideoSignal -> QImage
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -38,7 +138,7 @@ class ShowVideo(QtCore.QObject):
             bottom = item['bottomright']['y']
             right = item['bottomright']['x']
             thick = int((height + width) // 300)
-            color = (255, 255, 255)
+            color = colors[mess]
 
             topleft = (left, top)
             bottomright = (right, bottom)
@@ -167,88 +267,3 @@ if __name__ == '__main__':
     main_window.setCentralWidget(full_hwidget)
     main_window.show()
     sys.exit(app.exec_())
-
-colors = [
-    'person',
-    'bicycle',
-    'car',
-    'motorbike',
-    'aeroplane',
-    'bus',
-    'train',
-    'truck',
-    'boat',
-    'traffic light',
-    'fire hydrant',
-    'stop sign',
-    'parking meter',
-    'bench',
-    'bird',
-    'cat',
-    'dog',
-    'horse',
-    'sheep',
-    'cow',
-    'elephant',
-    'bear',
-    'zebra',
-    'giraffe',
-    'backpack',
-    'umbrella',
-    'handbag',
-    'tie',
-    'suitcase',
-    'frisbee',
-    'skis',
-    'snowboard',
-    'sports ball',
-    'kite',
-    'baseball bat',
-    'baseball glove',
-    'skateboard',
-    'surfboard',
-    'tennis racket',
-    'bottle',
-    'wine glass',
-    'cup',
-    'fork',
-    'knife',
-    'spoon',
-    'bowl',
-    'banana',
-    'apple',
-    'sandwich',
-    'orange',
-    'broccoli',
-    'carrot',
-    'hot dog',
-    'pizza',
-    'donut',
-    'cake',
-    'chair',
-    'sofa',
-    'pottedplant',
-    'bed',
-    'diningtable',
-    'toilet',
-    'tvmonitor',
-    'laptop',
-    'mouse',
-    'remote',
-    'keyboard',
-    'cell phone',
-    'microwave',
-    'oven',
-    'toaster',
-    'sink',
-    'refrigerator',
-    'book',
-    'clock',
-    'vase',
-    'scissors',
-    'teddy bear',
-    'hair drier',
-    'toothbrush'
-]
-
-
