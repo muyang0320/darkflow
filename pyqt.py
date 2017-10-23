@@ -119,7 +119,7 @@ class ShowVideo(QtCore.QObject):
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
     # 初始化网络
-    options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.3}
+    options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.4}
     tfnet = TFNet(options)
     # 好像是所谓的信号槽？ VideoSignal -> QImage
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -174,7 +174,7 @@ class ShowVideo(QtCore.QObject):
             info_json = self.tfnet.return_predict(color_swapped_image)
             # 在图片上画框修改像素值
             self._drawBox(color_swapped_image, info_json, height, width)
-            # 把opencv获取的np.ndarray => QImage
+            # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
             qt_image = QtGui.QImage(color_swapped_image.data,
                                     width,
                                     height,
@@ -198,6 +198,7 @@ class ShowVideo(QtCore.QObject):
 
 
 class ImageViewer(QtWidgets.QWidget):
+
     # 继承Qwidget这个画布的基类
     def __init__(self, parent=None):
         super(ImageViewer, self).__init__(parent)
@@ -221,7 +222,7 @@ class ImageViewer(QtWidgets.QWidget):
     def setImage(self, image):
         if image.isNull():
             print("Viewer Dropped frame!")
-
+        image = image.scaled(image.size() / 2)  # 把图像缩小一点
         self.image = image
         if image.size() != self.size():
             self.setFixedSize(image.size())
@@ -271,10 +272,10 @@ if __name__ == '__main__':
     horizontal_layout.addWidget(info_vwidget)
     full_hwidget = QtWidgets.QWidget()
     full_hwidget.setLayout(horizontal_layout)
-
     # 主窗口
     main_window = QtWidgets.QMainWindow()
     main_window.setCentralWidget(full_hwidget)
+    main_window.setWindowTitle('场景理解识别平台')
     main_window.show()
 
     sys.exit(app.exec_())
