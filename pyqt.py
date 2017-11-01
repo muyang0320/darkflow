@@ -182,17 +182,13 @@ class ShowVideo(QtCore.QObject):
 
     def _calcDepth(self, depth, info):
         # todo 把depth矩阵过滤一下 因为存在NaN
-        # depth[np.isnan(depth)] = np.infty  # 设置成无穷大 这样下面取min挺方便
-        print('-----------depth')
-        print(depth)
+        depth[np.isnan(depth)] = np.infty  # 设置成无穷大 这样下面取min挺方便
         for item in info:
             top = item['topleft']['y']
             left = item['topleft']['x']
             bottom = item['bottomright']['y']
             right = item['bottomright']['x']
             sub_pic = depth[top:bottom + 1, left:right + 1]  # 注意切片要加1
-            print('-------------sub_pic')
-            print(sub_pic)
             item['depth'] = np.min(sub_pic)
         depth = self._depthToGray(depth)
         return depth
@@ -246,6 +242,8 @@ class ShowVideo(QtCore.QObject):
                 # 在图片上画框修改像素值
                 image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
                 depth_ndarray = self._calcDepth(depth_ndarray, info_json)
+                print('------------------depth')
+                print(depth_ndarray)
                 # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
                 image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
                 qt_image = QtGui.QImage(image_ndarray,
