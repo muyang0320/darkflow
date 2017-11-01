@@ -47,7 +47,7 @@ while (1):
     #     cv2.putText(frame_tmp, mess, (left, top - 12),
     #                 0, 1e-3 * height, color, thick // 3)
     # show a frame
-    cv2.imshow("capture", frame)
+    # cv2.imshow("capture", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

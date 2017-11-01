@@ -23,7 +23,7 @@ import math
 THRESHOLD = 0.3
 MODEL_PATH = "cfg/yolo.cfg"
 WEIGHTS_PATH = "bin/yolo.weights"
-
+GPU = 0.9
 
 # 生成框的颜色
 def generate_colors():
@@ -151,7 +151,7 @@ class ShowVideo(QtCore.QObject):
     # @@@@@@@@@@@@@上面是新加入
 
     # 初始化神经网络网络
-    options = {"model": MODEL_PATH, "load": WEIGHTS_PATH, "threshold": THRESHOLD}
+    options = {"model": MODEL_PATH, "load": WEIGHTS_PATH, "threshold": THRESHOLD, "gpu": GPU}
     tfnet = TFNet(options)
     # 好像是所谓的信号槽？ VideoSignal -> QImage
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
