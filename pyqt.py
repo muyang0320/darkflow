@@ -21,7 +21,7 @@ import math
 
 # super params 超参数
 THRESHOLD = 0.3
-MODEL_PAHT = "cfg/yolo.cfg"
+MODEL_PATH = "cfg/yolo.cfg"
 WEIGHTS_PATH = "bin/yolo.weights"
 
 
@@ -129,19 +129,14 @@ def generate_colors():
 
 
 class ShowVideo(QtCore.QObject):
-    # initiating the built in camera
-    # 初始化相机
-    camera_port = 0
-    camera = cv2.VideoCapture(camera_port)
-
     # @@@@@@@@@@@@@下面是新加入
     # Create a PyZEDCamera object
     zed = zcam.PyZEDCamera()
     print('----------------创建ZED相机实例----------------')
     # Create a PyInitParameters object and set configuration parameters
     init_params = zcam.PyInitParameters()
-    init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # Use PERFORMANCE depth mode
-    init_params.coordinate_units = sl.PyUNIT.PyUNIT_MILLIMETER  # Use milliliter units (for depth measurements)
+    init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # 见pyzed/defines.pyx
+    init_params.coordinate_units = sl.PyUNIT.PyUNIT_MILLIMETER  # 深度为毫米单位
     init_params.camera_fps = 20
     print('----------------相机参数初始化----------------')
     # Open the camera
@@ -156,7 +151,7 @@ class ShowVideo(QtCore.QObject):
     # @@@@@@@@@@@@@上面是新加入
 
     # 初始化神经网络网络
-    options = {"model": MODEL_PAHT, "load": WEIGHTS_PATH, "threshold": THRESHOLD}
+    options = {"model": MODEL_PATH, "load": WEIGHTS_PATH, "threshold": THRESHOLD}
     tfnet = TFNet(options)
     # 好像是所谓的信号槽？ VideoSignal -> QImage
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -195,7 +190,6 @@ class ShowVideo(QtCore.QObject):
             sub_pic = depth[top:bottom + 1, left:right + 1]  # 注意切片要加1
             item['depth'] = np.min(sub_pic)
         depth = self._depthToGray(depth)
-
 
     def _depthToGray(self, depth):
         return np.floor(((depth - 500.0) / 19500.0) * 255).astype(dtype='int8')
@@ -236,7 +230,7 @@ class ShowVideo(QtCore.QObject):
                     self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                     # Retrieve depth map. Depth is aligned on the left image
                     self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
-                    image_ndarray = image.get_data()  # 拿到图片的ndarray数组
+                    image_ndarray = image.get_data()[:, :, 1:4]  # 拿到图片的ndarray数组
                     depth_ndarray = depth.get_data()
                     # height, width, _ = color_swapped_image.shape
                     height, width, _ = image_ndarray.shape
