@@ -194,7 +194,7 @@ class ShowVideo(QtCore.QObject):
         return depth
 
     def _depthToGray(self, depth):
-        return np.floor((depth/ 20000.0) * 255).astype(dtype='int8')
+        return np.floor((depth / 20000.0) * 255).astype(dtype='int8')
 
     def _formatJSON(self, json_list, fps):
         info_str = ''
@@ -229,9 +229,12 @@ class ShowVideo(QtCore.QObject):
 
             if self.zed.grab(self.runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
                 # Retrieve left image
+
                 self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                 # Retrieve depth map. Depth is aligned on the left image
+                start_t = time.time()
                 self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
+                print('本次深度图获取花费时间：', time.time() - start_t)
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
                 # height, width, _ = color_swapped_image.shape
@@ -242,9 +245,6 @@ class ShowVideo(QtCore.QObject):
                 # 在图片上画框修改像素值
                 image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
                 depth_ndarray = self._calcDepth(depth_ndarray, info_json)
-                print('------------------depth')
-                print(depth_ndarray.shape)
-                print(depth_ndarray)
                 # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
                 image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
                 qt_image = QtGui.QImage(image_ndarray,
