@@ -232,16 +232,16 @@ class ShowVideo(QtCore.QObject):
 
                 self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                 # Retrieve depth map. Depth is aligned on the left image
-                start_t = time.time()
                 self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
-                print('本次深度图获取花费时间：', time.time() - start_t)
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
                 # height, width, _ = color_swapped_image.shape
                 height, width, _ = image_ndarray.shape
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
                 # info_json = self.tfnet.return_predict(color_swapped_image)
+                start_t = time.time()
                 info_json = self.tfnet.return_predict(image_ndarray)
+                print('本次算框获取花费时间：', time.time() - start_t)
                 # 在图片上画框修改像素值
                 image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
                 depth_ndarray = self._calcDepth(depth_ndarray, info_json)
