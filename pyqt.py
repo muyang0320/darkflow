@@ -256,7 +256,7 @@ class ShowVideo(QtCore.QObject):
                                         width,
                                         height,
                                         depth_ndarray.strides[0],
-                                        QtGui.QImage.Format_RGB888)
+                                        QtGui.QImage.Format_Indexed8)
                 # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
                 # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
                 # 而槽则为后面connect的setImage
