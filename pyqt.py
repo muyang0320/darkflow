@@ -241,6 +241,9 @@ class ShowVideo(QtCore.QObject):
                     self._drawBox(image_ndarray, info_json, height, width)
                     self._calcDepth(depth_ndarray, info_json)
                     # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
+                    print('--------------------')
+                    print(image_ndarray.__class__.__name__)
+                    print(image_ndarray.shape)
                     qt_image = QtGui.QImage(image_ndarray,
                                             width,
                                             height,
