@@ -16,7 +16,7 @@ from darkflow.net.build import TFNet
 import pyzed.camera as zcam
 import pyzed.defines as sl
 import pyzed.types as tp
-import pyzed.core as core
+import pyzed.core as core, PyMEM
 import math
 
 # super params 超参数
