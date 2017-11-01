@@ -271,7 +271,6 @@ class ShowVideo(QtCore.QObject):
                     self.InfoSignal.emit(self._formatJSON(info_json, fps))  # 这里解析json并发送吧
         except Exception:
             print('----------------视频循环异常----------------')
-            print(e)
             return 0
         finally:
             print('----------------视频循环中断----------------')
