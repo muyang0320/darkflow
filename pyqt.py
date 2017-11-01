@@ -174,7 +174,7 @@ class ShowVideo(QtCore.QObject):
 
             topleft = (left, top)
             bottomright = (right, bottom)
-            image = image.copy()
+            image = image.copy() # 据说是python-opencv的bug 需要来个副本能好 目前看好像还行？
             cv2.rectangle(image, topleft, bottomright, color, 5)
             cv2.putText(image, mess, (left, top - 12),
                         0, 1e-3 * height, color, thick // 3)
@@ -241,13 +241,12 @@ class ShowVideo(QtCore.QObject):
                     self._drawBox(image_ndarray, info_json, height, width)
                     self._calcDepth(depth_ndarray, info_json)
                     # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
-                    qt_image = QtGui.QImage(image_ndarray.data,
+                    qt_image = QtGui.QImage(image_ndarray,
                                             width,
                                             height,
                                             image_ndarray.strides[0],
                                             QtGui.QImage.Format_RGB888)
-
-                    qt_depth = QtGui.QImage(depth_ndarray.data,
+                    qt_depth = QtGui.QImage(depth_ndarray,
                                             width,
                                             height,
                                             depth_ndarray.strides[0],
