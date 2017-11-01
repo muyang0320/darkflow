@@ -146,7 +146,7 @@ class ShowVideo(QtCore.QObject):
     print('----------------打开ZED相机----------------')
     # Create and set PyRuntimeParameters after opening the camera
     runtime_parameters = zcam.PyRuntimeParameters()
-    runtime_parameters.sensing_mode = sl.PySENSING_MODE.PySENSING_MODE_STANDARD  # Use STANDARD sensing mode
+    # runtime_parameters.sensing_mode = sl.PySENSING_MODE.PySENSING_MODE_STANDARD  # Use STANDARD sensing mode
     print('----------------设置运行时ZED相机参数----------------')
     # @@@@@@@@@@@@@上面是新加入
 
@@ -174,7 +174,7 @@ class ShowVideo(QtCore.QObject):
 
             topleft = (left, top)
             bottomright = (right, bottom)
-            image = image.copy() # 据说是python-opencv的bug 需要来个副本能好 目前看好像还行？
+            image = image.copy()  # 据说是python-opencv的bug 需要来个副本能好 目前看好像还行？
             cv2.rectangle(image, topleft, bottomright, color, 5)
             cv2.putText(image, mess, (left, top - 12),
                         0, 1e-3 * height, color, thick // 3)
@@ -219,65 +219,65 @@ class ShowVideo(QtCore.QObject):
         # @@@@@@@@@上面新加的
         # try:
         while run_video:
-                # 用opencv获得一帧
-                # 这里用zed获取image.get_data()就是np数据了
-                # ret, image = self.camera.read()
-                # BGR => RGB
-                # color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            # 用opencv获得一帧
+            # 这里用zed获取image.get_data()就是np数据了
+            # ret, image = self.camera.read()
+            # BGR => RGB
+            # color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-                if self.zed.grab(self.runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
-                    # Retrieve left image
-                    self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
-                    # Retrieve depth map. Depth is aligned on the left image
-                    self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
-                    print('-----------unsliced')
-                    print(image.get_data())
-                    image_ndarray = image.get_data()[:, :, 0:3]  # 拿到图片的ndarray数组
-                    print('------------sliced')
-                    print(image_ndarray)
-                    depth_ndarray = depth.get_data()
-                    # height, width, _ = color_swapped_image.shape
-                    height, width, _ = image_ndarray.shape
-                    # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
-                    # info_json = self.tfnet.return_predict(color_swapped_image)
-                    info_json = self.tfnet.return_predict(image_ndarray)
-                    # 在图片上画框修改像素值
-                    # self._drawBox(image_ndarray, info_json, height, width)
-                    self._calcDepth(depth_ndarray, info_json)
-                    # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
-                    image_ndarray = image_ndarray.copy() # 可能copy又能解bug
-                    qt_image = QtGui.QImage(image_ndarray,
-                                            width,
-                                            height,
-                                            image_ndarray.strides[0],
-                                            QtGui.QImage.Format_RGB888)
-                    qt_depth = QtGui.QImage(depth_ndarray,
-                                            width,
-                                            height,
-                                            depth_ndarray.strides[0],
-                                            QtGui.QImage.Format_Indexed8)
-                    # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
-                    # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
-                    # 而槽则为后面connect的setImage
-                    # 换句话说 QImage实例作为事件对象 VideoSignal发出信号交给setImage来处理
-                    # 而我如果没估计错的话 update会调用paintEvent从而重新drawImage 完成图像更新
-                    if elaped < 10:
-                        elaped += 1
-                    else:
-                        end_time = time.time()
-                        interval_time = end_time - start_time
-                        fps = elaped / interval_time
-                        elaped = 0
-                        start_time = time.time()
+            if self.zed.grab(self.runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
+                # Retrieve left image
+                self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
+                # Retrieve depth map. Depth is aligned on the left image
+                self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
+                print('-----------unsliced')
+                print(image.get_data())
+                image_ndarray = image.get_data()[:, :, 0:3][:, :, [2, 1, 0]]  # 拿到图片的ndarray数组
+                print('------------sliced')
+                print(image_ndarray)
+                depth_ndarray = depth.get_data()
+                # height, width, _ = color_swapped_image.shape
+                height, width, _ = image_ndarray.shape
+                # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
+                # info_json = self.tfnet.return_predict(color_swapped_image)
+                info_json = self.tfnet.return_predict(image_ndarray)
+                # 在图片上画框修改像素值
+                # self._drawBox(image_ndarray, info_json, height, width)
+                self._calcDepth(depth_ndarray, info_json)
+                # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
+                image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
+                qt_image = QtGui.QImage(image_ndarray,
+                                        width,
+                                        height,
+                                        image_ndarray.strides[0],
+                                        QtGui.QImage.Format_RGB888)
+                qt_depth = QtGui.QImage(depth_ndarray,
+                                        width,
+                                        height,
+                                        depth_ndarray.strides[0],
+                                        QtGui.QImage.Format_Indexed8)
+                # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
+                # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
+                # 而槽则为后面connect的setImage
+                # 换句话说 QImage实例作为事件对象 VideoSignal发出信号交给setImage来处理
+                # 而我如果没估计错的话 update会调用paintEvent从而重新drawImage 完成图像更新
+                if elaped < 10:
+                    elaped += 1
+                else:
+                    end_time = time.time()
+                    interval_time = end_time - start_time
+                    fps = elaped / interval_time
+                    elaped = 0
+                    start_time = time.time()
 
-                    self.VideoSignal.emit(qt_image)  # 发图
-                    self.DepthSignal.emit(qt_depth)
-                    self.InfoSignal.emit(self._formatJSON(info_json, fps))  # 这里解析json并发送吧
-        # except Exception:
-        #     print('----------------视频循环异常----------------')
-        # finally:
-        #     print('----------------视频循环中断----------------')
-    #     return 0
+                self.VideoSignal.emit(qt_image)  # 发图
+                self.DepthSignal.emit(qt_depth)
+                self.InfoSignal.emit(self._formatJSON(info_json, fps))  # 这里解析json并发送吧
+                # except Exception:
+                #     print('----------------视频循环异常----------------')
+                # finally:
+                #     print('----------------视频循环中断----------------')
+                #     return 0
 
 
 class ImageViewer(QtWidgets.QWidget):
