@@ -23,7 +23,7 @@ import math
 THRESHOLD = 0.3
 MODEL_PATH = "cfg/yolo.cfg"
 WEIGHTS_PATH = "bin/yolo.weights"
-GPU = 0.9
+GPU = 0.8
 
 # 生成框的颜色
 def generate_colors():
