@@ -194,7 +194,7 @@ class ShowVideo(QtCore.QObject):
         return depth
 
     def _depthToGray(self, depth):
-        return np.floor(((depth - 500.0) / 19500.0) * 255).astype(dtype='int8')
+        return np.floor((depth/ 20000.0) * 255).astype(dtype='int8')
 
     def _formatJSON(self, json_list, fps):
         info_str = ''
