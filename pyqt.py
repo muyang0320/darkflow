@@ -221,7 +221,6 @@ class ShowVideo(QtCore.QObject):
         # @@@@@@@@@上面新加的
         # try:
         while run_video:
-            print('running!!!!!!!!!!!')
             # 用opencv获得一帧
             # 这里用zed获取image.get_data()就是np数据了
             # ret, image = self.camera.read()
@@ -347,11 +346,11 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     # 开启一个线程
-    thread = QtCore.QThread()
-    thread.start()
+    # thread = QtCore.QThread()
+    # thread.start()
     # 生成一个ShowVideo实例
     vid = ShowVideo()
-    vid.moveToThread(thread)
+    # vid.moveToThread(thread)
     # 生成一个ImageViewer实例 应该就是那个展示视频的区域控件吧
     image_viewer = ImageViewer()
     depth_viewer = DepthViewer()
