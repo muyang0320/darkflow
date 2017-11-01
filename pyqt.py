@@ -174,7 +174,7 @@ class ShowVideo(QtCore.QObject):
 
             topleft = (left, top)
             bottomright = (right, bottom)
-
+            image = image.copy()
             cv2.rectangle(image, topleft, bottomright, color, 5)
             cv2.putText(image, mess, (left, top - 12),
                         0, 1e-3 * height, color, thick // 3)
