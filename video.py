@@ -6,7 +6,7 @@ import numpy as np
 from darkflow.net.build import TFNet
 
 cap = cv2.VideoCapture(0)
-options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.4}
+options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.4, "gpu": 0.9}
 tfnet = TFNet(options)
 
 while (1):
