@@ -135,9 +135,9 @@ class ShowVideo(QtCore.QObject):
     print('----------------创建ZED相机实例----------------')
     # Create a PyInitParameters object and set configuration parameters
     init_params = zcam.PyInitParameters()
-    init_params.camera_fps = 30
     init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # 见pyzed/defines.pyx
     init_params.coordinate_units = sl.PyUNIT.PyUNIT_MILLIMETER  # 深度为毫米单位
+    init_params.camera_fps = 30
     print('----------------相机参数初始化----------------')
     # Open the camera
     err = zed.open(init_params)
@@ -221,6 +221,7 @@ class ShowVideo(QtCore.QObject):
         # @@@@@@@@@上面新加的
         # try:
         while run_video:
+            print('running!!!!!!!!!!!')
             # 用opencv获得一帧
             # 这里用zed获取image.get_data()就是np数据了
             # ret, image = self.camera.read()
