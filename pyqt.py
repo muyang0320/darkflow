@@ -241,18 +241,16 @@ class ShowVideo(QtCore.QObject):
                     self._drawBox(image_ndarray, info_json, height, width)
                     self._calcDepth(depth_ndarray, info_json)
                     # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
-                    print('--------------------')
-                    print(image_ndarray.__class__.__name__)
-                    print(image_ndarray.shape)
+                    image_ndarray = image_ndarray.copy() # 可能copy又能解bug
                     qt_image = QtGui.QImage(image_ndarray,
                                             width,
                                             height,
-                                            # image_ndarray.strides[0],
+                                            image_ndarray.strides[0],
                                             QtGui.QImage.Format_RGB888)
                     qt_depth = QtGui.QImage(depth_ndarray,
                                             width,
                                             height,
-                                            # depth_ndarray.strides[0],
+                                            depth_ndarray.strides[0],
                                             QtGui.QImage.Format_Indexed8)
                     # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
                     # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
