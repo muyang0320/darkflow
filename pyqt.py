@@ -135,7 +135,7 @@ class ShowVideo(QtCore.QObject):
     print('----------------创建ZED相机实例----------------')
     # Create a PyInitParameters object and set configuration parameters
     init_params = zcam.PyInitParameters()
-    init_params.camera_fps = 20
+    init_params.camera_fps = 30
     init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # 见pyzed/defines.pyx
     init_params.coordinate_units = sl.PyUNIT.PyUNIT_MILLIMETER  # 深度为毫米单位
     print('----------------相机参数初始化----------------')
@@ -238,7 +238,7 @@ class ShowVideo(QtCore.QObject):
                     # info_json = self.tfnet.return_predict(color_swapped_image)
                     info_json = self.tfnet.return_predict(image_ndarray)
                     # 在图片上画框修改像素值
-                    self._drawBox(image_ndarray, info_json, height, width)
+                    # self._drawBox(image_ndarray, info_json, height, width)
                     self._calcDepth(depth_ndarray, info_json)
                     # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
                     image_ndarray = image_ndarray.copy() # 可能copy又能解bug
