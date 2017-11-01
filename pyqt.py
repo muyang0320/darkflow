@@ -230,6 +230,7 @@ class ShowVideo(QtCore.QObject):
                     self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                     # Retrieve depth map. Depth is aligned on the left image
                     self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
+                    print(image_ndarray)
                     image_ndarray = image.get_data()[:, :, 0:3]  # 拿到图片的ndarray数组
                     depth_ndarray = depth.get_data()
                     # height, width, _ = color_swapped_image.shape
