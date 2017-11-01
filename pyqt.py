@@ -12,106 +12,114 @@ import time
 
 from darkflow.net.build import TFNet
 
-# 生成框的颜色
-names = [
-    'person',
-    'bicycle',
-    'car',
-    'motorbike',
-    'aeroplane',
-    'bus',
-    'train',
-    'truck',
-    'boat',
-    'traffic light',
-    'fire hydrant',
-    'stop sign',
-    'parking meter',
-    'bench',
-    'bird',
-    'cat',
-    'dog',
-    'horse',
-    'sheep',
-    'cow',
-    'elephant',
-    'bear',
-    'zebra',
-    'giraffe',
-    'backpack',
-    'umbrella',
-    'handbag',
-    'tie',
-    'suitcase',
-    'frisbee',
-    'skis',
-    'snowboard',
-    'sports ball',
-    'kite',
-    'baseball bat',
-    'baseball glove',
-    'skateboard',
-    'surfboard',
-    'tennis racket',
-    'bottle',
-    'wine glass',
-    'cup',
-    'fork',
-    'knife',
-    'spoon',
-    'bowl',
-    'banana',
-    'apple',
-    'sandwich',
-    'orange',
-    'broccoli',
-    'carrot',
-    'hot dog',
-    'pizza',
-    'donut',
-    'cake',
-    'chair',
-    'sofa',
-    'pottedplant',
-    'bed',
-    'diningtable',
-    'toilet',
-    'tvmonitor',
-    'laptop',
-    'mouse',
-    'remote',
-    'keyboard',
-    'cell phone',
-    'microwave',
-    'oven',
-    'toaster',
-    'sink',
-    'refrigerator',
-    'book',
-    'clock',
-    'vase',
-    'scissors',
-    'teddy bear',
-    'hair drier',
-    'toothbrush'
-]
-RED = 255
-GREEN = 255
-BLUE = 255
-colors = {}
-i = 0
-red = RED
-for r in range(4):
-    green = GREEN
-    for g in range(4):
-        blue = BLUE
-        for b in range(5):
-            colors[names[i]] = (red, green, blue)
-            blue = blue / 2
-            i += 1
-        green = green / 2
-    red = red / 2
+# 引入zed相关包
+# import pyzed.camera as zcam
+# import pyzed.defines as sl
+# import pyzed.types as tp
+# import pyzed.core as core
+import math
 
+# 生成框的颜色
+def generate_colors():
+    names = [
+        'person',
+        'bicycle',
+        'car',
+        'motorbike',
+        'aeroplane',
+        'bus',
+        'train',
+        'truck',
+        'boat',
+        'traffic light',
+        'fire hydrant',
+        'stop sign',
+        'parking meter',
+        'bench',
+        'bird',
+        'cat',
+        'dog',
+        'horse',
+        'sheep',
+        'cow',
+        'elephant',
+        'bear',
+        'zebra',
+        'giraffe',
+        'backpack',
+        'umbrella',
+        'handbag',
+        'tie',
+        'suitcase',
+        'frisbee',
+        'skis',
+        'snowboard',
+        'sports ball',
+        'kite',
+        'baseball bat',
+        'baseball glove',
+        'skateboard',
+        'surfboard',
+        'tennis racket',
+        'bottle',
+        'wine glass',
+        'cup',
+        'fork',
+        'knife',
+        'spoon',
+        'bowl',
+        'banana',
+        'apple',
+        'sandwich',
+        'orange',
+        'broccoli',
+        'carrot',
+        'hot dog',
+        'pizza',
+        'donut',
+        'cake',
+        'chair',
+        'sofa',
+        'pottedplant',
+        'bed',
+        'diningtable',
+        'toilet',
+        'tvmonitor',
+        'laptop',
+        'mouse',
+        'remote',
+        'keyboard',
+        'cell phone',
+        'microwave',
+        'oven',
+        'toaster',
+        'sink',
+        'refrigerator',
+        'book',
+        'clock',
+        'vase',
+        'scissors',
+        'teddy bear',
+        'hair drier',
+        'toothbrush'
+    ]
+    RED = 255
+    GREEN = 255
+    BLUE = 255
+    colors = {}
+    i = 0
+    red = RED
+    for r in range(4):
+        green = GREEN
+        for g in range(4):
+            blue = BLUE
+            for b in range(5):
+                colors[names[i]] = (red, green, blue)
+                blue = blue / 2
+                i += 1
+            green = green / 2
+        red = red / 2
+    return colors
 
 class ShowVideo(QtCore.QObject):
     # initiating the built in camera
@@ -127,6 +135,7 @@ class ShowVideo(QtCore.QObject):
 
     def __init__(self, parent=None):
         super(ShowVideo, self).__init__(parent)
+        self.colors = generate_colors()
 
     def _drawBox(self, image, info, height, width):
         for item in info:
@@ -136,7 +145,7 @@ class ShowVideo(QtCore.QObject):
             bottom = item['bottomright']['y']
             right = item['bottomright']['x']
             thick = int((height + width) // 300)
-            color = colors[mess]
+            color = self.colors[mess]
 
             topleft = (left, top)
             bottomright = (right, bottom)
@@ -165,6 +174,7 @@ class ShowVideo(QtCore.QObject):
         start_time = time.time()
         while run_video:
             # 用opencv获得一帧
+            # 这里用zed获取image.get_data()就是np数据了
             ret, image = self.camera.read()
             # BGR => RGB
             color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
