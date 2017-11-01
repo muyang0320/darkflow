@@ -20,8 +20,9 @@ while (1):
     print('相机画面尺寸：(高%d, 宽%d)' % (height, width))
 
     # 制造一份拷贝 画上rectangle
-    frame_tmp = frame.copy()
-    # result = tfnet.return_predict(frame_tmp)  # 返回的是json
+    start_t = time.time()
+    result = tfnet.return_predict(frame)  # 返回的是json
+    print('预测一帧消耗时长', time.time() - start_t)
     # print(result)
     #
     # colors = {
@@ -45,7 +46,7 @@ while (1):
     #     cv2.putText(frame_tmp, mess, (left, top - 12),
     #                 0, 1e-3 * height, color, thick // 3)
     # show a frame
-    cv2.imshow("capture", frame_tmp)
+    cv2.imshow("capture", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

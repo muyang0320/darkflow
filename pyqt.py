@@ -240,7 +240,7 @@ class ShowVideo(QtCore.QObject):
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
                 # info_json = self.tfnet.return_predict(color_swapped_image)
                 start_t = time.time()
-                info_json = self.tfnet.return_predict(image_ndarray)
+                info_json = self.tfnet.return_predict(image_ndarray) # 这一步操作巨慢啊怎么回事
                 print('本次算框获取花费时间：', time.time() - start_t)
                 # 在图片上画框修改像素值
                 image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
