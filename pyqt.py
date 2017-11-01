@@ -232,7 +232,7 @@ class ShowVideo(QtCore.QObject):
                 self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
                 print('-----------unsliced')
                 print(image.get_data())
-                image_ndarray = image.get_data()[:, :, 0:3][:, :, [2, 1, 0]]  # 拿到图片的ndarray数组
+                image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 print('------------sliced')
                 print(image_ndarray)
                 depth_ndarray = depth.get_data()
