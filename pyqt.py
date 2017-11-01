@@ -225,7 +225,7 @@ class ShowVideo(QtCore.QObject):
                 # BGR => RGB
                 # color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-                if self.zed.grab(runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
+                if self.zed.grab(self.runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
                     # Retrieve left image
                     self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                     # Retrieve depth map. Depth is aligned on the left image
