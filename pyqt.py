@@ -163,6 +163,7 @@ class ShowVideo(QtCore.QObject):
         self.colors = generate_colors()
 
     def _drawBox(self, image, info, height, width):
+        image = image.copy()  # 据说是python-opencv的bug 需要来个副本能好 目前看好像还行？
         for item in info:
             mess = item['label']
             top = item['topleft']['y']
@@ -174,10 +175,10 @@ class ShowVideo(QtCore.QObject):
 
             topleft = (left, top)
             bottomright = (right, bottom)
-            image = image.copy()  # 据说是python-opencv的bug 需要来个副本能好 目前看好像还行？
             cv2.rectangle(image, topleft, bottomright, color, 5)
             cv2.putText(image, mess, (left, top - 12),
                         0, 1e-3 * height, color, thick // 3)
+        return image
 
     def _calcDepth(self, depth, info):
         # todo 把depth矩阵过滤一下 因为存在NaN
@@ -190,6 +191,7 @@ class ShowVideo(QtCore.QObject):
             sub_pic = depth[top:bottom + 1, left:right + 1]  # 注意切片要加1
             item['depth'] = np.min(sub_pic)
         depth = self._depthToGray(depth)
+        return depth
 
     def _depthToGray(self, depth):
         return np.floor(((depth - 500.0) / 19500.0) * 255).astype(dtype='int8')
@@ -230,11 +232,7 @@ class ShowVideo(QtCore.QObject):
                 self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                 # Retrieve depth map. Depth is aligned on the left image
                 self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
-                print('-----------unsliced')
-                print(image.get_data())
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
-                print('------------sliced')
-                print(image_ndarray)
                 depth_ndarray = depth.get_data()
                 # height, width, _ = color_swapped_image.shape
                 height, width, _ = image_ndarray.shape
@@ -242,8 +240,8 @@ class ShowVideo(QtCore.QObject):
                 # info_json = self.tfnet.return_predict(color_swapped_image)
                 info_json = self.tfnet.return_predict(image_ndarray)
                 # 在图片上画框修改像素值
-                # self._drawBox(image_ndarray, info_json, height, width)
-                self._calcDepth(depth_ndarray, info_json)
+                image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
+                depth_ndarray = self._calcDepth(depth_ndarray, info_json)
                 # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
                 image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
                 qt_image = QtGui.QImage(image_ndarray,
