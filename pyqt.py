@@ -217,8 +217,8 @@ class ShowVideo(QtCore.QObject):
         image = core.PyMat()
         depth = core.PyMat()
         # @@@@@@@@@上面新加的
-        try:
-            while run_video:
+        # try:
+        while run_video:
                 # 用opencv获得一帧
                 # 这里用zed获取image.get_data()就是np数据了
                 # ret, image = self.camera.read()
@@ -269,11 +269,11 @@ class ShowVideo(QtCore.QObject):
                     self.VideoSignal.emit(qt_image)  # 发图
                     self.DepthSignal.emit(qt_depth)
                     self.InfoSignal.emit(self._formatJSON(info_json, fps))  # 这里解析json并发送吧
-        except Exception:
-            print('----------------视频循环异常----------------')
-            return 0
-        finally:
-            print('----------------视频循环中断----------------')
+        # except Exception:
+        #     print('----------------视频循环异常----------------')
+        # finally:
+        #     print('----------------视频循环中断----------------')
+    #     return 0
 
 
 class ImageViewer(QtWidgets.QWidget):
