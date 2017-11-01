@@ -1,12 +1,13 @@
 # -*- coding=utf-8 -*-
 # 用来测试opencv怎么读取摄像头展示画面
 import cv2
+import time
 import numpy as np
 from darkflow.net.build import TFNet
 
 cap = cv2.VideoCapture(0)
-# options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.4}
-# tfnet = TFNet(options)
+options = {"model": "cfg/yolo.cfg", "load": "bin/yolo.weights", "threshold": 0.4}
+tfnet = TFNet(options)
 
 while (1):
     # get a frame
