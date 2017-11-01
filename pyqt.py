@@ -135,9 +135,9 @@ class ShowVideo(QtCore.QObject):
     print('----------------创建ZED相机实例----------------')
     # Create a PyInitParameters object and set configuration parameters
     init_params = zcam.PyInitParameters()
+    init_params.camera_fps = 20
     init_params.depth_mode = sl.PyDEPTH_MODE.PyDEPTH_MODE_PERFORMANCE  # 见pyzed/defines.pyx
     init_params.coordinate_units = sl.PyUNIT.PyUNIT_MILLIMETER  # 深度为毫米单位
-    init_params.camera_fps = 20
     print('----------------相机参数初始化----------------')
     # Open the camera
     err = zed.open(init_params)
@@ -247,12 +247,12 @@ class ShowVideo(QtCore.QObject):
                     qt_image = QtGui.QImage(image_ndarray,
                                             width,
                                             height,
-                                            image_ndarray.strides[0],
+                                            # image_ndarray.strides[0],
                                             QtGui.QImage.Format_RGB888)
                     qt_depth = QtGui.QImage(depth_ndarray,
                                             width,
                                             height,
-                                            depth_ndarray.strides[0],
+                                            # depth_ndarray.strides[0],
                                             QtGui.QImage.Format_Indexed8)
                     # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
                     # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
