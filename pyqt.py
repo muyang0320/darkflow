@@ -25,6 +25,7 @@ MODEL_PATH = "cfg/yolo.cfg"
 WEIGHTS_PATH = "bin/yolo.weights"
 GPU = 0.8
 
+
 # 生成框的颜色
 def generate_colors():
     names = [
@@ -182,7 +183,7 @@ class ShowVideo(QtCore.QObject):
 
     def _calcDepth(self, depth, info):
         # todo 把depth矩阵过滤一下 因为存在NaN
-        depth[np.isnan(depth)] = np.infty  # 设置成无穷大 这样下面取min挺方便
+        depth[np.isnan(depth)] = np.Inf
         for item in info:
             top = item['topleft']['y']
             left = item['topleft']['x']
@@ -194,7 +195,10 @@ class ShowVideo(QtCore.QObject):
         return depth
 
     def _depthToGray(self, depth):
-        return np.floor((depth / 20000.0) * 255).astype(dtype='int8')
+        depth = np.floor((depth / 20000.0) * 255).astype(dtype='uint8')  # int8会溢出出现负数 这也是之前出问题的原因
+        depth = 255 - depth
+        depth = np.dstack((depth, depth, depth))
+        return depth
 
     def _formatJSON(self, json_list, fps):
         info_str = ''
@@ -240,7 +244,7 @@ class ShowVideo(QtCore.QObject):
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
                 # info_json = self.tfnet.return_predict(color_swapped_image)
                 start_t = time.time()
-                info_json = self.tfnet.return_predict(image_ndarray) # 这一步操作巨慢啊怎么回事
+                info_json = self.tfnet.return_predict(image_ndarray)  # 这一步操作巨慢啊怎么回事
                 print('本次算框获取花费时间：', time.time() - start_t)
                 # 在图片上画框修改像素值
                 image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
@@ -256,7 +260,7 @@ class ShowVideo(QtCore.QObject):
                                         width,
                                         height,
                                         depth_ndarray.strides[0],
-                                        QtGui.QImage.Format_Indexed8)
+                                        QtGui.QImage.Format_RGB888)
                 # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
                 # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
                 # 而槽则为后面connect的setImage
