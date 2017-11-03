@@ -26,6 +26,7 @@ def main():
         if zed.grab(zcam.PyRuntimeParameters()) == tp.PyERROR_CODE.PySUCCESS:
             # A new image is available if grab() returns PySUCCESS
             zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
+
             timestamp = zed.get_camera_timestamp()  # Get the timestamp at the time the image was captured
             print("Image resolution: {0} x {1} || Image timestamp: {2}\n".format(image.get_width(), image.get_height(),
                   timestamp))
