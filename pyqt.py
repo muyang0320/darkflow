@@ -247,7 +247,7 @@ class ShowVideo(QtCore.QObject):
                 # 因为这里的depth应该是MAT_TYPE_8U_C4转过来的 所以可能需要和image一样slice一下
                 # 有可能需要ndarray.copy()一下不然会有bug
 
-                self.zed.retrieve_measure(depth, sl.PyVIEW.PyVIEW_DEPTH)
+                self.zed.retrieve_image(depth, sl.PyVIEW.PyVIEW_DEPTH)
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
                 # height, width, _ = color_swapped_image.shape
@@ -358,8 +358,8 @@ class DepthViewer(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     # 如果是linux就执行下面的shell语句 因为在ubuntu那台机子上opencv环境有点问题
-    if platform.system() == 'Linux':
-        os.system('export LD_LIBRARY_PATH=$HOME/anaconda2/lib:$LD_LIBRARY_PATH')
+    # if platform.system() == 'Linux':
+    #     os.system('export LD_LIBRARY_PATH=$HOME/anaconda2/lib:$LD_LIBRARY_PATH')
     # 生成一个app
     app = QtWidgets.QApplication(sys.argv)
 
