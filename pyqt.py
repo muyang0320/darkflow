@@ -151,14 +151,15 @@ class ShowVideo(QtCore.QObject):
     runtime_parameters = zcam.PyRuntimeParameters()
     # runtime_parameters.sensing_mode = sl.PySENSING_MODE.PySENSING_MODE_STANDARD  # Use STANDARD sensing mode
     print('----------------设置运行时ZED相机参数----------------')
-    # @@@@@@@@@@@@@上面是新加入
 
     # 初始化神经网络网络
     options = {"model": MODEL_PATH, "load": WEIGHTS_PATH, "threshold": THRESHOLD, "gpu": GPU}
     tfnet = TFNet(options)
     # 好像是所谓的信号槽？ VideoSignal -> QImage
-    VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
-    DepthSignal = QtCore.pyqtSignal(QtGui.QImage)
+    LeftVideoSignal = QtCore.pyqtSignal(QtGui.QImage)
+    RightVideoSignal = QtCore.pyqtSignal(QtGui.QImage)
+    GrayDepthSignal = QtCore.pyqtSignal(QtGui.QImage)
+    ColorDepthSignal = QtCore.pyqtSignal(QtGui.QImage)
     InfoSignal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -208,7 +209,7 @@ class ShowVideo(QtCore.QObject):
         info_str = ''
         for json in json_list:
             label = json['label']
-            depth = json['depth'] / 100
+            depth = json['depth'] / 1000
             confidence = json['confidence'] * 100
 
             info_str += 'Label %s, confidence: %.2f%%, depth: %.2fm\n' % (label, confidence, depth)
@@ -223,24 +224,23 @@ class ShowVideo(QtCore.QObject):
         fps = 0  # 帧率
         start_time = time.time()  # 开始时间 用来算fps
 
-        # @@@@@@@@@下面新加的
-        image = core.PyMat()
+        # 四个图 一个用来算距离的深度矩阵 共5个
+        left_image = core.PyMat()
+        right_image = core.PyMat()
         depth = core.PyMat()  # 深度矩阵 用以计算距离
         gray_depth = core.PyMat()  # 灰度图
-        color_depth = core.PyMat()  # 伪彩色图
-        # @@@@@@@@@上面新加的
-        # try:
+        color_depth = np.array([])  # 伪彩色图 是从灰度图折算的
+
         while run_video:
             # 用opencv获得一帧
             # 这里用zed获取image.get_data()就是np数据了
             # ret, image = self.camera.read()
             # BGR => RGB
             # color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
             if self.zed.grab(self.runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
                 # Retrieve left image
-
-                self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)  # 拿到左边的图
+                self.zed.retrieve_image(left_image, sl.PyVIEW.PyVIEW_LEFT)  # 拿到左边的图
+                self.zed.retrieve_image(right_image, sl.PyVIEW.PyVIEW_RIGHT)  # 拿到左边的图
                 # Retrieve depth map. Depth is aligned on the left image
                 # self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
                 # 这样可以得到normalized depth image
@@ -249,34 +249,49 @@ class ShowVideo(QtCore.QObject):
                 # 因为这里的depth应该是MAT_TYPE_8U_C4转过来的 所以可能需要和image一样slice一下
                 # 有可能需要ndarray.copy()一下不然会有bug
                 self.zed.retrieve_image(gray_depth, sl.PyVIEW.PyVIEW_DEPTH)  # 用api拿到灰度图
-                # color_depth = cv2.applyColorMap(gray_depth, cv2.COLORMAP_JET) # 转换伪彩色图
                 self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)  # 拿到深度数据
-                image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
+
+                left_image_ndarray = left_image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
+                right_image_ndarray = right_image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
-                gray_depth_ndarray = gray_depth.get_data()[:, :, [0, 1, 2]].astype('uint8')
-                # height, width, _ = color_swapped_image.shape
-                height, width, _ = image_ndarray.shape
-                # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
-                # info_json = self.tfnet.return_predict(color_swapped_image)
+                gray_depth_ndarray = gray_depth.get_data()[:, :, [0, 1, 2]]
+
+                gray_2d_ndarray = np.squeeze(gray_depth_ndarray[:, :, [0]])
+                color_depth_ndarray = cv2.applyColorMap(gray_2d_ndarray, cv2.COLORMAP_JET)  # 转换伪彩色图
+
+                height, width, _ = left_image_ndarray.shape
+
                 start_t = time.time()
-                info_json = self.tfnet.return_predict(image_ndarray)  # 这一步操作巨慢啊怎么回事
+                info_json = self.tfnet.return_predict(left_image_ndarray)  # 这一步操作巨慢啊怎么回事
                 print('本次算框获取花费时间：', time.time() - start_t)
                 # 在图片上画框修改像素值
-                image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
+                left_image_ndarray = self._drawBox(left_image_ndarray, info_json, height, width)
                 depth_ndarray = self._calcDepth(depth_ndarray, info_json)
                 # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
-                image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
-                gray_depth_ndarray = gray_depth_ndarray.copy() # 这次真的是copy解bug 不然会说QImage传的参数不对
-                qt_image = QtGui.QImage(image_ndarray,
-                                        width,
-                                        height,
-                                        image_ndarray.strides[0],
-                                        QtGui.QImage.Format_RGB888)
-                qt_depth = QtGui.QImage(gray_depth_ndarray,
-                                        width,
-                                        height,
-                                        gray_depth_ndarray.strides[0],
-                                        QtGui.QImage.Format_RGB888)
+                left_image_ndarray = left_image_ndarray.copy()  # 可能copy又能解bug
+                right_image_ndarray = right_image_ndarray.copy()  # 可能copy又能解bug
+                gray_depth_ndarray = gray_depth_ndarray.copy()  # 这次真的是copy解bug 不然会说QImage传的参数不对
+
+                qt_left_image = QtGui.QImage(left_image_ndarray,
+                                             width,
+                                             height,
+                                             left_image_ndarray.strides[0],
+                                             QtGui.QImage.Format_RGB888)
+                qt_right_image = QtGui.QImage(right_image_ndarray,
+                                              width,
+                                              height,
+                                              right_image_ndarray.strides[0],
+                                              QtGui.QImage.Format_RGB888)
+                qt_gray_depth = QtGui.QImage(gray_depth_ndarray,
+                                             width,
+                                             height,
+                                             gray_depth_ndarray.strides[0],
+                                             QtGui.QImage.Format_RGB888)
+                qt_color_depth = QtGui.QImage(color_depth_ndarray,
+                                              width,
+                                              height,
+                                              color_depth_ndarray.strides[0],
+                                              QtGui.QImage.Format_RGB888)
                 # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
                 # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
                 # 而槽则为后面connect的setImage
@@ -291,14 +306,11 @@ class ShowVideo(QtCore.QObject):
                     elaped = 0
                     start_time = time.time()
 
-                self.VideoSignal.emit(qt_image)  # 发图
-                self.DepthSignal.emit(qt_depth)
+                self.LeftVideoSignal.emit(qt_left_image)  # 发图
+                self.RightVideoSignal.emit(qt_right_image)  # 发图
+                self.GrayDepthSignal.emit(qt_gray_depth)
+                self.ColorDepthSignal.emit(qt_color_depth)
                 self.InfoSignal.emit(self._formatJSON(info_json, fps))  # 这里解析json并发送吧
-                # except Exception:
-                #     print('----------------视频循环异常----------------')
-                # finally:
-                #     print('----------------视频循环中断----------------')
-                #     return 0
 
 
 class ImageViewer(QtWidgets.QWidget):
@@ -375,23 +387,39 @@ if __name__ == '__main__':
     vid = ShowVideo()
     vid.moveToThread(thread)
     # 生成一个ImageViewer实例 应该就是那个展示视频的区域控件吧
-    image_viewer = ImageViewer()
-    depth_viewer = DepthViewer()
+    left_image_viewer = ImageViewer()
+    right_image_viewer = ImageViewer()
+    gray_depth_viewer = DepthViewer()
+    color_depth_viewer = DepthViewer()
     # VideoSignal是ShowVideo实例的一个属性 connect是连接啥的？ pyqtSignal和pyqtSlot应该是成对的
-    vid.VideoSignal.connect(image_viewer.setImage)
-    vid.DepthSignal.connect(depth_viewer.setImage)
+    vid.LeftVideoSignal.connect(left_image_viewer.setImage)
+    vid.RightVideoSignal.connect(right_image_viewer.setImage)
+    vid.GrayDepthSignal.connect(gray_depth_viewer.setImage)
+    vid.ColorDepthSignal.connect(color_depth_viewer.setImage)
     # Button to start the videocapture:
     push_button = QtWidgets.QPushButton('Start')
     push_button.clicked.connect(vid.startVideo)
 
-    # 生成一个垂直布局来放Image
-    video_vlayout = QtWidgets.QVBoxLayout()
-    video_vlayout.addWidget(image_viewer)
-    video_vlayout.addWidget(depth_viewer)
-    video_vlayout.addWidget(push_button)
+    # 1 生成一个垂直布局来放Image
+    left_panel_vlayout = QtWidgets.QVBoxLayout()
+    # 1.1 平行的放左右双目image
     video_vwidget = QtWidgets.QWidget()
-    video_vwidget.setLayout(video_vlayout)
-    # 生成一个垂直布局来放Info
+    video_hlayout = QtWidgets.QHBoxLayout()
+    video_hlayout.addWidget(left_image_viewer)
+    video_hlayout.addWidget(right_image_viewer)
+    video_vwidget.setLayout(video_hlayout)
+    # 1.2 平行的放灰度和伪彩色图
+    depth_vwidget = QtWidgets.QWidget()
+    depth_hlayout = QtWidgets.QHBoxLayout()
+    depth_hlayout.addWidget(gray_depth_viewer)
+    depth_hlayout.addWidget(color_depth_viewer)
+    depth_vwidget.setLayout(depth_hlayout)
+    # 1.3 对左面板进行填充
+    left_panel_vlayout.addWidget(video_vwidget)
+    left_panel_vlayout.addWidget(depth_vwidget)
+    left_panel_vlayout.addWidget(push_button)
+
+    # 2 生成一个垂直布局来放Info
     info_label = QtWidgets.QLabel('检测数据', parent=None)
     info_datashow = QtWidgets.QTextEdit('当前没有数据', parent=None)
     vid.InfoSignal.connect(info_datashow.setText)  # 连接信号槽
@@ -403,9 +431,9 @@ if __name__ == '__main__':
     info_vwidget = QtWidgets.QWidget()
     info_vwidget.setLayout(info_vlayout)
     info_vwidget.setFixedWidth(400)
-    # 合成水平布局
+    # 3 合成水平布局
     horizontal_layout = QtWidgets.QHBoxLayout()
-    horizontal_layout.addWidget(video_vwidget)
+    horizontal_layout.addWidget(left_panel_vlayout)
     horizontal_layout.addWidget(info_vwidget)
     full_hwidget = QtWidgets.QWidget()
     full_hwidget.setLayout(horizontal_layout)
