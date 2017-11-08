@@ -9,6 +9,7 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 
 import time
+import platform
 
 from darkflow.net.build import TFNet
 
@@ -355,6 +356,9 @@ class DepthViewer(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
+    # 如果是linux就执行下面的shell语句 因为在ubuntu那台机子上opencv环境有点问题
+    if platform.system() == 'Linux':
+        os.system('export LD_LIBRARY_PATH=$HOME/anaconda2/lib:$LD_LIBRARY_PATH')
     # 生成一个app
     app = QtWidgets.QApplication(sys.argv)
 
