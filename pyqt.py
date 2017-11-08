@@ -194,6 +194,8 @@ class ShowVideo(QtCore.QObject):
         depth = self._depthToGray(depth)
         return depth
 
+    # @@@ api自带了相关方法的zed.retrieveImage(image_depth_zed, VIEW_DEPTH);
+    # VIEW_DEPTH在sl.PyVIEW.VIEW_DEPTH里
     def _depthToGray(self, depth):
         depth = np.floor((depth / 20000.0) * 255).astype(dtype='uint8')  # int8会溢出出现负数 这也是之前出问题的原因
         depth = 255 - depth
@@ -236,7 +238,14 @@ class ShowVideo(QtCore.QObject):
 
                 self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)
                 # Retrieve depth map. Depth is aligned on the left image
-                self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
+                # self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
+                # 这样可以得到normalized depth image
+                # 见https://www.stereolabs.com/documentation/integrations/opencv/getting-started.html的displaying depth
+                # @@@@@@@@@@@@@@@@@注意 如果这里得到的是rgb 就可以直接跑 如果不是 就需要dstack一下
+                # 因为这里的depth应该是MAT_TYPE_8U_C4转过来的 所以可能需要和image一样slice一下
+                # 有可能需要ndarray.copy()一下不然会有bug
+
+                self.zed.retrieve_measure(depth, sl.PyVIEW.PyVIEW_DEPTH)
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
                 # height, width, _ = color_swapped_image.shape
@@ -248,7 +257,7 @@ class ShowVideo(QtCore.QObject):
                 print('本次算框获取花费时间：', time.time() - start_t)
                 # 在图片上画框修改像素值
                 image_ndarray = self._drawBox(image_ndarray, info_json, height, width)
-                depth_ndarray = self._calcDepth(depth_ndarray, info_json)
+                # depth_ndarray = self._calcDepth(depth_ndarray, info_json)
                 # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
                 image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
                 qt_image = QtGui.QImage(image_ndarray,

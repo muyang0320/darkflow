@@ -1,5 +1,5 @@
 .idea
-
+.mat
 # Python bytecode
 *.pyc
 
