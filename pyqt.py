@@ -271,10 +271,11 @@ class ShowVideo(QtCore.QObject):
                                         height,
                                         image_ndarray.strides[0],
                                         QtGui.QImage.Format_RGB888)
+                print()
                 qt_depth = QtGui.QImage(gray_depth_ndarray,
                                         width,
                                         height,
-                                        depth_ndarray.strides[0],
+                                        gray_depth_ndarray.strides[0],
                                         QtGui.QImage.Format_RGB888)
                 # 将QImage发射到VideoSignal？还是说交给VideoSignal来emit？
                 # 可以理解为 视频一帧帧循环并触发信号 把qt_image事件对象传出
