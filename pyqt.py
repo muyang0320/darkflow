@@ -418,6 +418,8 @@ if __name__ == '__main__':
     left_panel_vlayout.addWidget(video_vwidget)
     left_panel_vlayout.addWidget(depth_vwidget)
     left_panel_vlayout.addWidget(push_button)
+    left_panel_vwidget = QtWidgets.QWidget()
+    left_panel_vwidget.setLayout(left_panel_vlayout)
 
     # 2 生成一个垂直布局来放Info
     info_label = QtWidgets.QLabel('检测数据', parent=None)
@@ -433,7 +435,7 @@ if __name__ == '__main__':
     info_vwidget.setFixedWidth(400)
     # 3 合成水平布局
     horizontal_layout = QtWidgets.QHBoxLayout()
-    horizontal_layout.addWidget(left_panel_vlayout)
+    horizontal_layout.addWidget(left_panel_vwidget)
     horizontal_layout.addWidget(info_vwidget)
     full_hwidget = QtWidgets.QWidget()
     full_hwidget.setLayout(horizontal_layout)
