@@ -270,6 +270,8 @@ class ShowVideo(QtCore.QObject):
                                         height,
                                         image_ndarray.strides[0],
                                         QtGui.QImage.Format_RGB888)
+                print('0-----------------')
+                print(gray_depth.shape)
                 qt_depth = QtGui.QImage(gray_depth,
                                         width,
                                         height,
