@@ -254,6 +254,9 @@ class ShowVideo(QtCore.QObject):
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
                 gray_depth_ndarray = gray_depth.get_data()
+                print('------------------99999')
+                print(gray_depth_ndarray.shape)
+                print(gray_depth_ndarray)
                 # height, width, _ = color_swapped_image.shape
                 height, width, _ = image_ndarray.shape
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
