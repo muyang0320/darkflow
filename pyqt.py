@@ -193,7 +193,7 @@ class ShowVideo(QtCore.QObject):
             right = item['bottomright']['x']
             sub_pic = depth[top:bottom + 1, left:right + 1]  # 注意切片要加1
             item['depth'] = np.min(sub_pic)
-        depth = self._depthToGray(depth)
+        # depth = self._depthToGray(depth)
         return depth
 
     # @@@ api自带了相关方法的zed.retrieveImage(image_depth_zed, VIEW_DEPTH);
