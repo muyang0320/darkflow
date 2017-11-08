@@ -254,9 +254,6 @@ class ShowVideo(QtCore.QObject):
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
                 gray_depth_ndarray = gray_depth.get_data()[:, :, [0, 1, 2]].astype('uint8')
-                print('---------')
-                print(gray_depth_ndarray.shape)
-                print(gray_depth_ndarray)
                 # height, width, _ = color_swapped_image.shape
                 height, width, _ = image_ndarray.shape
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
@@ -269,7 +266,7 @@ class ShowVideo(QtCore.QObject):
                 depth_ndarray = self._calcDepth(depth_ndarray, info_json)
                 # 把opencv获取的np.ndarray => QImage 这里把图片缩小了 方便看 默认的太大了
                 image_ndarray = image_ndarray.copy()  # 可能copy又能解bug
-                gray_depth_ndarray = gray_depth_ndarray.copy()
+                gray_depth_ndarray = gray_depth_ndarray.copy() # 这次真的是copy解bug 不然会说QImage传的参数不对
                 qt_image = QtGui.QImage(image_ndarray,
                                         width,
                                         height,
