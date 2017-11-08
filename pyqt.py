@@ -253,6 +253,7 @@ class ShowVideo(QtCore.QObject):
                 self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH) # 拿到深度数据
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
+                gray_depth_ndarray = gray_depth.get_data()
                 # height, width, _ = color_swapped_image.shape
                 height, width, _ = image_ndarray.shape
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
@@ -270,9 +271,7 @@ class ShowVideo(QtCore.QObject):
                                         height,
                                         image_ndarray.strides[0],
                                         QtGui.QImage.Format_RGB888)
-                print('0-----------------')
-                print(gray_depth.shape)
-                qt_depth = QtGui.QImage(gray_depth,
+                qt_depth = QtGui.QImage(gray_depth_ndarray,
                                         width,
                                         height,
                                         depth_ndarray.strides[0],
