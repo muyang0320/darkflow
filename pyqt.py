@@ -22,7 +22,7 @@ import pyzed.core as core
 import math
 
 # super params 超参数
-THRESHOLD = 0.4
+THRESHOLD = 0.5
 MODEL_PATH = "cfg/yolo.cfg"
 WEIGHTS_PATH = "bin/yolo.weights"
 GPU = 0.8
@@ -257,7 +257,7 @@ class ShowVideo(QtCore.QObject):
                 gray_depth_ndarray = gray_depth.get_data()[:, :, [0, 1, 2]]
 
                 gray_2d_ndarray = np.squeeze(gray_depth_ndarray[:, :, [0]])
-                color_depth_ndarray = cv2.applyColorMap(gray_2d_ndarray, cv2.COLORMAP_JET)  # 转换伪彩色图
+                color_depth_ndarray = cv2.applyColorMap(255 - gray_2d_ndarray, cv2.COLORMAP_JET)  # 转换伪彩色图
 
                 height, width, _ = left_image_ndarray.shape
 
