@@ -22,7 +22,7 @@ import pyzed.core as core
 import math
 
 # super params 超参数
-THRESHOLD = 0.3
+THRESHOLD = 0.4
 MODEL_PATH = "cfg/yolo.cfg"
 WEIGHTS_PATH = "bin/yolo.weights"
 GPU = 0.8
@@ -225,9 +225,9 @@ class ShowVideo(QtCore.QObject):
 
         # @@@@@@@@@下面新加的
         image = core.PyMat()
-        depth = core.PyMat() # 深度矩阵 用以计算距离
-        gray_depth = core.PyMat() # 灰度图
-        color_depth = core.PyMat() # 伪彩色图
+        depth = core.PyMat()  # 深度矩阵 用以计算距离
+        gray_depth = core.PyMat()  # 灰度图
+        color_depth = core.PyMat()  # 伪彩色图
         # @@@@@@@@@上面新加的
         # try:
         while run_video:
@@ -240,7 +240,7 @@ class ShowVideo(QtCore.QObject):
             if self.zed.grab(self.runtime_parameters) == tp.PyERROR_CODE.PySUCCESS:
                 # Retrieve left image
 
-                self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT) # 拿到左边的图
+                self.zed.retrieve_image(image, sl.PyVIEW.PyVIEW_LEFT)  # 拿到左边的图
                 # Retrieve depth map. Depth is aligned on the left image
                 # self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)
                 # 这样可以得到normalized depth image
@@ -248,15 +248,12 @@ class ShowVideo(QtCore.QObject):
                 # @@@@@@@@@@@@@@@@@注意 如果这里得到的是rgb 就可以直接跑 如果不是 就需要dstack一下
                 # 因为这里的depth应该是MAT_TYPE_8U_C4转过来的 所以可能需要和image一样slice一下
                 # 有可能需要ndarray.copy()一下不然会有bug
-                self.zed.retrieve_image(gray_depth, sl.PyVIEW.PyVIEW_DEPTH) # 用api拿到灰度图
+                self.zed.retrieve_image(gray_depth, sl.PyVIEW.PyVIEW_DEPTH)  # 用api拿到灰度图
                 # color_depth = cv2.applyColorMap(gray_depth, cv2.COLORMAP_JET) # 转换伪彩色图
-                self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH) # 拿到深度数据
+                self.zed.retrieve_measure(depth, sl.PyMEASURE.PyMEASURE_DEPTH)  # 拿到深度数据
                 image_ndarray = image.get_data()[:, :, [2, 1, 0]]  # 拿到图片的ndarray数组并bgr->rgb
                 depth_ndarray = depth.get_data()
-                gray_depth_ndarray = gray_depth.get_data()
-                print('------------------99999')
-                print(gray_depth_ndarray.shape)
-                print(gray_depth_ndarray)
+                gray_depth_ndarray = gray_depth.get_data()[:, :, :]
                 # height, width, _ = color_swapped_image.shape
                 height, width, _ = image_ndarray.shape
                 # 这里用了调换位置的image 但是原先写的代码没有调换 看看效果先
@@ -274,7 +271,6 @@ class ShowVideo(QtCore.QObject):
                                         height,
                                         image_ndarray.strides[0],
                                         QtGui.QImage.Format_RGB888)
-                print()
                 qt_depth = QtGui.QImage(gray_depth_ndarray,
                                         width,
                                         height,
